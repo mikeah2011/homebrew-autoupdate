@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # ====== 检查依赖 ======
 if ! command -v brew &> /dev/null; then
@@ -27,25 +27,35 @@ if [ -n "$ZSH_VERSION" ]; then
   fi
 else
   echo "警告：非 Zsh 环境，将使用 Bash 配置。"
-  SHELL_CONFIG="$HOME/.bash_profile"
+  # 检测配置文件（适配 Bash）
+  SHELL_CONFIG=""
+  if [ -n "$BASH_VERSION" ]; then
+    if [ -f "$HOME/.bash_profile" ]; then
+      SHELL_CONFIG="$HOME/.bash_profile"
+    else
+      SHELL_CONFIG="$HOME/.bashrc"
+    fi
+  else
+    echo "警告：脚本需在 Bash 中运行。"
+    exit 1
+  fi
 fi
 
-# 仅在变量未配置时追加到配置文件
-if ! grep -q "$CASK_OPTS" "$SHELL_CONFIG" 2>/dev/null; then
-  echo "配置 HOMEBREW_CASK_OPTS 到 $SHELL_CONFIG..."
-  printf "\n# Homebrew Cask 应用安装目录（由 brew-auto-update 工具添加）\n%s\n" "$CASK_OPTS" >> "$SHELL_CONFIG"
+# 避免重复写入
+if ! grep -qF "$CASK_OPTS" "$SHELL_CONFIG"; then
+  echo -e "\n# Homebrew Cask 应用安装目录\n$CASK_OPTS" >> "$SHELL_CONFIG"
 fi
 
-# 临时导出变量（当前脚本生效）
+# 临时导出变量
 eval "$CASK_OPTS"
 
 # ====== 创建目录 ======
 mkdir -p "$SCRIPT_DIR"
-cd "$SCRIPT_DIR" || exit
+cd "$SCRIPT_DIR" || exit 1
 
-# ====== 生成主脚本 (homebrew.auto.update.sh) ======
+# ====== 生成主脚本 (兼容 Bash) ======
 cat > "$SCRIPT_NAME" << 'EOF'
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # 加载 Homebrew 环境变量
 eval "$(brew shellenv)"
@@ -71,7 +81,7 @@ cat > "$PLIST_NAME" << EOF
     <string>homebrew.auto.update</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/bin/zsh</string>
+        <string>/bin/bash</string>
         <string>$SCRIPT_DIR/$SCRIPT_NAME</string>
     </array>
     <key>StartCalendarInterval</key>
@@ -94,9 +104,9 @@ cat > "$PLIST_NAME" << EOF
 </plist>
 EOF
 
-# ====== 生成管理脚本 (manage_task.sh) ======
+# ====== 生成管理脚本 ======
 cat > "$MANAGE_SCRIPT" << EOF
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # 加载/卸载任务
 PLIST_PATH="$SCRIPT_DIR/$PLIST_NAME"
