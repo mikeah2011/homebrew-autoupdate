@@ -1,2 +1,3 @@
-# auto_update_homebrew
-Auto Update Homebrew Apps
+# Homebrew Auto Update
+
+Execute at a certain time on schedule
