@@ -54,7 +54,7 @@ mkdir -p "$SCRIPT_DIR"
 cd "$SCRIPT_DIR" || exit 1
 
 # ====== 生成主脚本 (兼容 Bash) ======
-cat > "$SCRIPT_NAME" << 'EOF'
+cat > "$SCRIPT_NAME" << EOF
 #!/usr/bin/env bash
 
 # 加载 Homebrew 环境变量
@@ -68,7 +68,7 @@ eval "$(brew shellenv)"
   brew upgrade --greedy --cask
   brew cleanup
   echo "[$(date)] 更新完成"
-} >> $SCRIPT_DIR/brew_auto_update.log 2>&1
+} >> ~/brew_auto_update.log 2>&1
 EOF
 
 # ====== 生成 plist 配置文件 ======
@@ -130,4 +130,4 @@ echo "✅ 懒人包生成完成！目录: $SCRIPT_DIR"
 echo "👉 后续操作:"
 echo "1. 编辑 plist 文件调整时间: cd $SCRIPT_DIR && open $PLIST_NAME"
 echo "2. 启动任务: ./manage_task.sh"
-echo "3. 查看日志: tail -f $SCRIPT_DIR/brew_auto_update.log"
+echo "3. 查看日志: tail -f ~/brew_auto_update.log"
